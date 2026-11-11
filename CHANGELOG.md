@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.1](https://github.com/laurigates/inkscape-silhouette/compare/v1.30.0...v1.30.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **packaging:** build the .deb with dpkg-deb instead of checkinstall ([ee60766](https://github.com/laurigates/inkscape-silhouette/commit/ee607660936c2a916900651ad733c4c176744060))
+
 ## [1.30.0](https://github.com/laurigates/inkscape-silhouette/compare/v1.29.0...v1.30.0) (2026-11-11)
 
 
