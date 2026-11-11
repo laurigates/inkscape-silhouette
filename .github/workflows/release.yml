@@ -40,7 +40,7 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install inkscape
         sudo apt-get -y install gettext  # translation with msgfmt
-        sudo apt-get -y install checkinstall fakeroot libxml-xpath-perl  # xpath
+        sudo apt-get -y install libxml-xpath-perl  # xpath
         inkscape --version
         python -m pip install --upgrade pip
         pip install -r requirements.txt
