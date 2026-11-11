@@ -2,37 +2,61 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - demo/release-please  # demo only: this is `main` in the real setup
 
 jobs:
-  release:
-    name: Create Release Package
-    runs-on: ubuntu-20.04
+  release-please:
+    name: Maintain the release PR, create the release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+    - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
+      id: release
+      with:
+        target-branch: ${{ github.ref_name }}
 
+  package:
+    name: Create Release Package
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.12'
     - name: 🐧 Install Inkscape
       run: |
-        sudo add-apt-repository ppa:inkscape.dev/stable -y  # inkscape 1.2 from https://launchpad.net/~inkscape.dev/+archive/ubuntu/stable
+        sudo add-apt-repository ppa:inkscape.dev/stable -y  # inkscape STABLE from https://launchpad.net/~inkscape.dev/+archive/ubuntu/stable
         sudo apt-get update
         sudo apt-get -y install inkscape
         sudo apt-get -y install gettext  # translation with msgfmt
-        sudo apt-get -y install checkinstall libxml-xpath-perl  # xpath
+        sudo apt-get -y install checkinstall fakeroot libxml-xpath-perl  # xpath
         inkscape --version
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Branch name
-      id: branch_name
+    - name: Read versions
+      id: versions
+      env:
+        TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
       run: |
-        echo TAG_VERSION=$( echo ${GITHUB_REF#refs/tags/} | sed -e 's/^v//' ) >> $GITHUB_OUTPUT
+        echo TAG_VERSION=${TAG_NAME#v} >> $GITHUB_OUTPUT
         echo SOURCE_VERSION=$( python ./sendto_silhouette.py --version ) >> $GITHUB_OUTPUT
         echo INX_VERSION=$( xpath -q -e '//*[@name="about_version"]/text()' sendto_silhouette.inx | sed -e 's/^version //i' ) >> $GITHUB_OUTPUT
     - name: Version Check
       env:
-          TAG_VERSION: ${{ steps.branch_name.outputs.TAG_VERSION }}
-          SOURCE_VERSION: ${{ steps.branch_name.outputs.SOURCE_VERSION }}
-          INX_VERSION: ${{ steps.branch_name.outputs.INX_VERSION }}
+          TAG_VERSION: ${{ steps.versions.outputs.TAG_VERSION }}
+          SOURCE_VERSION: ${{ steps.versions.outputs.SOURCE_VERSION }}
+          INX_VERSION: ${{ steps.versions.outputs.INX_VERSION }}
       run: |
           echo "::notice::tag version: $TAG_VERSION"
           echo "::notice::source version: $SOURCE_VERSION"
@@ -42,15 +66,9 @@ jobs:
     - name: Build Release Package
       run: |
         make dist
-#    - name: Upload .deb Package
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: inkscape-silhouette_${{ steps.branch_name.outputs.SOURCE_SOURCE_VERSION }}-1_all.deb
-#        path: distribute/out/inkscape-silhouette_${{ steps.branch_name.outputs.SOURCE_SOURCE_VERSION }}-1_all.deb
-    - name: Release
-      uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3  # v3
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        draft: true
-        files: |
-          distribute/out/*
+    - name: Attach packages to the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+      run: |
+        gh release upload "$TAG_NAME" distribute/out/*

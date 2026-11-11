@@ -206,8 +206,10 @@ Always use the least amount of blade possible.
       <label translatable="no">inkscape-silhouette extension</label>
       <label translatable="no" appearance="url" indent="1">https://github.com/fablabnbg/inkscape-silhouette</label>
       <label translatable="no">by Jürgen Weigert [juergen@fabmail.org] and contributors</label>
-      <!-- Keep in sync with sendto_silhouette.py line 7 __version__ = ... -->
-      <label name="about_version" translatable="no">Version 1.29</label>
+      <!-- release-please keeps this in sync with __version__ in sendto_silhouette.py -->
+      <!-- x-release-please-start-version -->
+      <label name="about_version" translatable="no">Version 1.29.0</label>
+      <!-- x-release-please-end -->
     </page>
   </param>
 
