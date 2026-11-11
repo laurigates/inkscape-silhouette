@@ -208,7 +208,7 @@ Always use the least amount of blade possible.
       <label translatable="no">by Jürgen Weigert [juergen@fabmail.org] and contributors</label>
       <!-- release-please keeps this in sync with __version__ in sendto_silhouette.py -->
       <!-- x-release-please-start-version -->
-      <label name="about_version" translatable="no">Version 1.29.0</label>
+      <label name="about_version" translatable="no">Version 1.30.0</label>
       <!-- x-release-please-end -->
     </page>
   </param>
